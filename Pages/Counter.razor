@@ -1,0 +1,80 @@
+﻿@page "/counter"
+@using System.Text.RegularExpressions
+@using BlazorApp.Models
+@using System.Globalization
+@using System.Net
+
+<PageTitle>Upload</PageTitle>
+
+<h1>Upload Music CSV file</h1>
+
+<InputFile OnChange="@OnInputFileChange" class="btn btn-primary" />
+
+<table class="table">
+    <thead>
+    
+    <tr>
+        <th>Name</th>
+        <th>Artist</th>
+        <th>Composer</th>
+        <th>Album</th>
+    </tr>
+    </thead>
+        <tbody>
+            @foreach (var song in listOfMusicsBlazor)
+            {
+                <tr>
+                    <td>@song.Name</td>
+                    <td>@song.Artist</td>
+                    <td>@song.Composer</td>
+                    <td>@song.Album</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+@code {
+    public static string[] music = new string[1000];
+    List<Music> listOfMusicsBlazor = new List<Music>();
+    public async Task OnInputFileChange(InputFileChangeEventArgs e)  
+    {
+        var singleFile = e.File;
+        Regex regex = new Regex(".+\\.csv", RegexOptions.Compiled);  
+        if (!regex.IsMatch(singleFile.Name))  
+        {  
+    //show error invalidad format file  
+        }  
+        else  
+        {
+            var stream = singleFile.OpenReadStream();  
+            var csv = new List<string[]>();  
+            MemoryStream ms = new MemoryStream();  
+            await stream.CopyToAsync(ms);  
+            stream.Close();  
+            var outputFileString = System.Text.Encoding.UTF8.GetString(ms.ToArray());
+            SplitCSV2(outputFileString);
+        }  
+    }  
+    
+    private void SplitCSV2(string input)
+    {
+        string csvMusic = input;
+        List<string> musicRows = csvMusic.Split("\n").ToList();
+        for (int i = 0; i < musicRows.Count; i++)
+        {
+            if (i > 0)
+            {
+                List<string> musicStringList = musicRows[i].Split(",").ToList();
+                Console.WriteLine(musicStringList);
+                Music music = new Music(
+                    musicStringList[0],
+                    musicStringList[1],
+                    musicStringList[2],
+                    musicStringList[3]
+                    );
+                listOfMusicsBlazor.Add(music);
+            }
+        }
+    }
+}
+@*test blazor testing http post*@
